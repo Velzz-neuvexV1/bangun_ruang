@@ -75,11 +75,17 @@
         </div>
       </div>
 
-      <!-- Mode Selector -->
+      <!-- Mode Selector (Updated Nav Bar) -->
       <div class="flex items-center gap-2 bg-sky-100/80 p-1.5 rounded-2xl border border-sky-200">
         <button onclick="switchTab('learn')" id="tab-learn" class="px-5 py-2 rounded-xl font-bold text-sm transition-all duration-200 bg-white text-sky-600 shadow-sm">
           <i class="fa-solid fa-shapes mr-1.5"></i> Belajar 3D
         </button>
+        
+        <!-- Tombol Menggambar yang mengarah ke file gambar_2.html -->
+        <a href="gambar.html" id="tab-draw" class="px-5 py-2 rounded-xl font-bold text-sm transition-all duration-200 text-slate-600 hover:text-sky-600 flex items-center">
+          <i class="fa-solid fa-pen-ruler mr-1.5"></i> Menggambar
+        </a>
+
         <button onclick="switchTab('quiz')" id="tab-quiz" class="px-5 py-2 rounded-xl font-bold text-sm transition-all duration-200 text-slate-600 hover:text-sky-600">
           <i class="fa-solid fa-gamepad mr-1.5"></i> Kuis Seru
         </button>
@@ -301,7 +307,7 @@
         <div class="w-24 h-24 bg-amber-100 text-amber-500 rounded-full flex items-center justify-center text-5xl mx-auto mb-4 border-4 border-amber-200 shadow-md">
           <i class="fa-solid fa-trophy"></i>
         </div>
-        <h3 class="text-3xl font-extrabold text-slate-800 mb-2 font-fun">Hebat Sekali! 🎉</h3>
+        <h3 class="text-3xl font-extrabold text-slate-800 mb-2 font-fun">Hebat Sekali!</h3>
         <p class="text-slate-600 mb-6 font-semibold">Kamu telah menyelesaikan kuis bangun ruang.</p>
         <div class="bg-sky-50 border border-sky-100 p-4 rounded-2xl max-w-xs mx-auto mb-6">
           <p class="text-slate-500 text-xs font-bold uppercase">Skor Akhir Kamu</p>
@@ -1223,14 +1229,14 @@
         btnElement.classList.add('border-emerald-500', 'bg-emerald-50', 'text-emerald-700');
         btnElement.querySelector('i').className = "fa-solid fa-circle-check text-emerald-500";
         feedback.className = "p-4 rounded-2xl font-bold text-center mb-4 transition-all bg-emerald-100 text-emerald-800 border border-emerald-200";
-        feedback.innerText = "🎉 Benar Sekali! Kamu Hebat!";
+        feedback.innerText = "Benar Sekali! Kamu Hebat!";
       } else {
         playSound('wrong');
         btnElement.classList.add('border-rose-500', 'bg-rose-50', 'text-rose-700');
         btnElement.querySelector('i').className = "fa-solid fa-circle-xmark text-rose-500";
         buttons[q.answer].classList.add('border-emerald-500', 'bg-emerald-50', 'text-emerald-700');
         feedback.className = "p-4 rounded-2xl font-bold text-center mb-4 transition-all bg-rose-100 text-rose-800 border border-rose-200";
-        feedback.innerText = `😅 Masih Kurang Tepat! Jawaban yang benar: ${q.options[q.answer]}`;
+        feedback.innerText = `Masih Kurang Tepat! Jawaban yang benar: ${q.options[q.answer]}`;
       }
 
       document.getElementById('btn-next-quiz').classList.remove('hidden');
