@@ -71,7 +71,7 @@
         </div>
         <div>
           <h1 class="text-2xl font-bold text-sky-600 tracking-wide">BangunRuang3D</h1>
-          <p class="text-xs text-slate-500 font-semibold">Petualangan Matematika Anak SD 🚀</p>
+          <p class="text-xs text-slate-500 font-semibold">Petualangan Matematika Anak SD</p>
         </div>
       </div>
 
@@ -268,7 +268,7 @@
       <div class="flex items-center justify-between pb-6 border-b border-slate-100 mb-6">
         <div>
           <span class="text-xs font-bold text-sky-500 uppercase tracking-wider">Kuis Matematika SD</span>
-          <h2 class="text-2xl font-extrabold text-slate-800">Uji Pemahamanmu! 🎯</h2>
+          <h2 class="text-2xl font-extrabold text-slate-800">Uji Pemahamanmu!</h2>
         </div>
         <div class="bg-amber-100 text-amber-800 px-4 py-2 rounded-2xl font-extrabold text-lg flex items-center gap-2 border border-amber-200">
           <i class="fa-solid fa-star text-amber-500"></i>
@@ -319,7 +319,7 @@
     <div class="bg-white p-6 md:p-8 rounded-3xl border-2 border-sky-100 shadow-sm">
       <div class="pb-6 border-b border-slate-100 mb-6">
         <span class="text-xs font-bold text-sky-500 uppercase tracking-wider">Kalkulator Interaktif</span>
-        <h2 class="text-2xl font-extrabold text-slate-800">Hitung Volume & Luas 🧮</h2>
+        <h2 class="text-2xl font-extrabold text-slate-800">Hitung Volume & Luas</h2>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
@@ -340,7 +340,8 @@
           <div id="calc-inputs" class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6"></div>
 
           <button onclick="calculateResult()" class="w-full bg-sky-500 hover:bg-sky-600 text-white font-bold py-3.5 rounded-2xl btn-shadow transition duration-150 mb-6 flex items-center justify-center gap-2">
-            <i class="fa-solid fa-calculator"></i> Hitung Sekarang
+            <!--<i class="fa-solid fa-calculator"></i> Hitung Sekarang-->
+            Hitung Sekarang
           </button>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -359,7 +360,7 @@
   </main>
 
   <footer class="bg-white border-t border-sky-100 py-4 px-4 text-center text-xs text-slate-500">
-    <p class="font-semibold">Dibuat untuk Pembelajaran Matematika Interaktif Anak SD 🎓</p>
+    <p class="font-semibold">Pembelajaran Matematika Interaktif Anak SD by VM Market</p>
   </footer>
 
   <!-- SCRIPT LOGIC -->
@@ -416,7 +417,7 @@
       bola: {
         title: "Bola",
         heading: "Mengenal Bola",
-        desc: "Bola adalah bangun ruang 3D bulat sempurna yang hanya dibatasi oleh satu bidang lengkung tanpa memiliki rusuk lurus atau titik sudut.",
+        desc: "Bola adalah bangun ruang 3D bulat sempurna yang hanya dibatasi oleh satu bidang lengkung tanpa memiliki rusuk lurus atau titik sudut. Secara matematika murni, bola tidak memiliki jaring-jaring sempurna karena permukaannya yang melengkung tidak bisa dibentangkan menjadi bidang datar tanpa robek atau berkerut, sehingga pembuatannya hanya bisa menggunakan bentuk pendekatan praktis seperti irisan",
         sisi: 1, rusuk: 0, sudut: 0,
         vol: "4/3 × π × r³", lp: "4 × π × r²",
         examples: ["Bola sepak", "Kelereng", "Globe (Peta Bumi)"]
@@ -463,7 +464,8 @@
     let verticesGroup = new THREE.Group();
     let unfoldGroup = new THREE.Group();
 
-    let foldHinges = []; // Contains hinge objects for reliable 3D net folding
+    let foldHinges = [];
+    let customFoldHandler = null; // handler lipatan khusus (dipakai kerucut) // Contains hinge objects for reliable 3D net folding
 
     let currentShapeKey = 'kubus';
     let currentMode = 'normal';
@@ -542,6 +544,7 @@
       verticesGroup = new THREE.Group();
       unfoldGroup = new THREE.Group();
       foldHinges = [];
+      customFoldHandler = null;
 
       scene.add(mainMeshGroup);
       scene.add(edgesGroup);
@@ -628,11 +631,45 @@
       applyViewMode();
     }
 
-    function createCustomMesh(geom, colorHex, labelText = '') {
+    // Label teks berbentuk bidang kecil (dipakai semua panel jaring-jaring)
+    // opts: { x, y } posisi label, scale ukuran, rot putaran (supaya teks tetap tegak)
+    function makeLabelPlane(labelText, opts = {}) {
+      const canvas = document.createElement('canvas');
+      canvas.width = 256;
+      canvas.height = 128;
+      const ctx = canvas.getContext('2d');
+
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+      ctx.beginPath();
+      if (ctx.roundRect) ctx.roundRect(16, 24, 224, 80, 16);
+      else ctx.rect(16, 24, 224, 80);
+      ctx.fill();
+      ctx.strokeStyle = '#0284c7';
+      ctx.lineWidth = 6;
+      ctx.stroke();
+
+      ctx.font = 'bold 36px Fredoka, sans-serif';
+      ctx.fillStyle = '#0f172a';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(labelText, 128, 64);
+
+      const texture = new THREE.CanvasTexture(canvas);
+      const labelMat = new THREE.MeshBasicMaterial({ map: texture, transparent: true, side: THREE.DoubleSide });
+      const labelMesh = new THREE.Mesh(new THREE.PlaneGeometry(1.2, 0.6), labelMat);
+      labelMesh.name = 'label';
+      const sc = opts.scale || 1;
+      labelMesh.scale.set(sc, sc, 1);
+      labelMesh.position.set(opts.x || 0, opts.y || 0, 0.01);
+      labelMesh.rotation.z = opts.rot || 0;
+      return labelMesh;
+    }
+
+    function createCustomMesh(geom, colorHex, labelText = '', labelOpts = null) {
       const group = new THREE.Group();
-      const mat = new THREE.MeshPhongMaterial({ 
-        color: colorHex, 
-        side: THREE.DoubleSide, 
+      const mat = new THREE.MeshPhongMaterial({
+        color: colorHex,
+        side: THREE.DoubleSide,
         shininess: 50
       });
       const mesh = new THREE.Mesh(geom, mat);
@@ -644,32 +681,7 @@
       line.position.z = 0.005;
       group.add(line);
 
-      if (labelText) {
-        const canvas = document.createElement('canvas');
-        canvas.width = 256;
-        canvas.height = 128;
-        const ctx = canvas.getContext('2d');
-        
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
-        ctx.roundRect(16, 24, 224, 80, 16);
-        ctx.fill();
-        ctx.strokeStyle = '#0284c7';
-        ctx.lineWidth = 6;
-        ctx.stroke();
-
-        ctx.font = 'bold 36px Fredoka, sans-serif';
-        ctx.fillStyle = '#0f172a';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(labelText, 128, 64);
-
-        const texture = new THREE.CanvasTexture(canvas);
-        const labelMat = new THREE.MeshBasicMaterial({ map: texture, transparent: true, side: THREE.DoubleSide });
-        const labelGeom = new THREE.PlaneGeometry(1.2, 0.6);
-        const labelMesh = new THREE.Mesh(labelGeom, labelMat);
-        labelMesh.position.z = 0.01;
-        group.add(labelMesh);
-      }
+      if (labelText) group.add(makeLabelPlane(labelText, labelOpts || {}));
 
       return group;
     }
@@ -766,43 +778,39 @@
         unfoldGroup.rotation.x = -Math.PI / 2;
 
       } else if (key === 'limas') {
-        const s = 1.8, h = 2.0;
+        // === JARING-JARING LIMAS SEGI EMPAT ===
+        // Alas persegi di tengah + 4 segitiga sisi tegak di tiap sisinya.
+        const s = 1.8, h = 2.0;                                      // sisi alas & tinggi limas
+        const tinggiSisi = Math.sqrt(h * h + (s / 2) * (s / 2));      // tinggi segitiga sisi tegak
+        const sudutDalam = Math.atan2(h, s / 2);                      // sudut antara alas & sisi tegak
+        // Segitiga mulai dari posisi rata (180° terhadap alas), jadi harus diputar (180° - sudutDalam)
+        const foldAngle = Math.PI - sudutDalam;
         const colors = { alas: 0xf97316, t1: 0x3b82f6, t2: 0x10b981, t3: 0xa855f7, t4: 0xec4899 };
 
         const basePanel = createPanelMesh(s, s, colors.alas, "ALAS");
         unfoldGroup.add(basePanel);
 
-        // Precise Triangle side mesh
+        // Segitiga: alasnya menempel di engsel (0,0), puncaknya mengarah ke +y sejauh tinggiSisi
         const triGeom = new THREE.BufferGeometry();
-        const vertices = new Float32Array([
-          -s/2, 0, 0,
-           s/2, 0, 0,
-             0, Math.sqrt(h*h + (s/2)*(s/2)), 0
-        ]);
-        triGeom.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
+        triGeom.setAttribute('position', new THREE.BufferAttribute(new Float32Array([
+          -s / 2, 0, 0,
+           s / 2, 0, 0,
+               0, tinggiSisi, 0
+        ]), 3));
         triGeom.computeVertexNormals();
 
-        const createTri = (col) => createCustomMesh(triGeom, col);
+        // Satu sisi tegak = engsel di tepi alas + segitiga yang diputar supaya menghadap keluar
+        const addSide = (hx, hy, axis, maxAngle, rotZ, color, label) => {
+          const hinge = addHinge(basePanel, hx, hy, 0, axis, maxAngle);
+          const tri = createCustomMesh(triGeom, color, label, { y: tinggiSisi / 3, scale: 0.6, rot: -rotZ });
+          tri.rotation.z = rotZ;   // arah puncak segitiga: keluar dari tepi alas
+          hinge.add(tri);
+        };
 
-        const foldAngle = Math.atan2(h, s/2); // Exact geometric slope angle!
-
-        const h1 = addHinge(basePanel, 0, -s/2, 0, 'x', -foldAngle);
-        h1.add(createTri(colors.t1));
-
-        const h2 = addHinge(basePanel, 0, s/2, 0, 'x', foldAngle);
-        const t2 = createTri(colors.t2);
-        t2.rotation.z = Math.PI;
-        h2.add(t2);
-
-        const h3 = addHinge(basePanel, -s/2, 0, 0, 'y', foldAngle);
-        const t3 = createTri(colors.t3);
-        t3.rotation.z = -Math.PI/2;
-        h3.add(t3);
-
-        const h4 = addHinge(basePanel, s/2, 0, 0, 'y', -foldAngle);
-        const t4 = createTri(colors.t4);
-        t4.rotation.z = Math.PI/2;
-        h4.add(t4);
+        addSide(0, -s / 2, 'x', -foldAngle, Math.PI,      colors.t1, "SISI 1"); // depan  (puncak ke -y)
+        addSide(0,  s / 2, 'x',  foldAngle, 0,            colors.t2, "SISI 2"); // belakang (puncak ke +y)
+        addSide(-s / 2, 0, 'y',  foldAngle, Math.PI / 2,  colors.t3, "SISI 3"); // kiri   (puncak ke -x)
+        addSide( s / 2, 0, 'y', -foldAngle, -Math.PI / 2, colors.t4, "SISI 4"); // kanan  (puncak ke +x)
 
         unfoldGroup.rotation.x = -Math.PI / 2;
 
@@ -811,157 +819,221 @@
         const triHeight = (Math.sqrt(3) / 2) * side;
         const colors = { alas: 0xec4899, r1: 0x3b82f6, r2: 0x10b981, r3: 0xf59e0b, tutup: 0xa855f7 };
 
-        // Triangular Base
+        // Geometry Segitiga Sama Sisi (titik (0,0,0) di tengah rusuk alas)
         const triGeom = new THREE.BufferGeometry();
         const vertices = new Float32Array([
-          -side/2, 0, 0,
-           side/2, 0, 0,
-                0, triHeight, 0
+          -side / 2, 0, 0,
+           side / 2, 0, 0,
+                  0, triHeight, 0
         ]);
         triGeom.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
         triGeom.computeVertexNormals();
 
-        const baseTri = createCustomMesh(triGeom, colors.alas, "ALAS");
-        unfoldGroup.add(baseTri);
-
-        // Rectangular face 1 (Bottom Edge)
-        const hR1 = addHinge(baseTri, 0, 0, 0, 'x', -Math.PI / 2);
+        // 1. SISI 1 (Sisi Tengah Utama)
         const pR1 = createPanelMesh(side, height, colors.r1, "SISI 1");
-        pR1.position.set(0, -height/2, 0);
-        hR1.add(pR1);
+        unfoldGroup.add(pR1);
 
-        // Rectangular face 2 (Right Edge)
-        const hR2 = addHinge(baseTri, side/4, triHeight/2, 0, 'z', -Math.PI * 2 / 3);
+        // 2. SISI 2 (Nempel Rusuk Kanan SISI 1)
+        const hR2 = addHinge(pR1, side / 2, 0, 0, 'y', -(2 * Math.PI / 3));
         const pR2 = createPanelMesh(side, height, colors.r2, "SISI 2");
-        pR2.position.set(0, -height/2, 0);
-        pR2.rotation.x = -Math.PI / 2;
+        pR2.position.set(side / 2, 0, 0);
         hR2.add(pR2);
 
-        // Rectangular face 3 (Left Edge)
-        const hR3 = addHinge(baseTri, -side/4, triHeight/2, 0, 'z', Math.PI * 2 / 3);
+        // 3. SISI 3 (Nempel Rusuk Kiri SISI 1)
+        const hR3 = addHinge(pR1, -side / 2, 0, 0, 'y', (2 * Math.PI / 3));
         const pR3 = createPanelMesh(side, height, colors.r3, "SISI 3");
-        pR3.position.set(0, -height/2, 0);
-        pR3.rotation.x = -Math.PI / 2;
+        pR3.position.set(-side / 2, 0, 0);
         hR3.add(pR3);
 
-        // Top Triangular Cap attached to SISI 1
-        const hTutup = addHinge(pR1, 0, -height/2, 0, 'x', -Math.PI / 2);
+        // 4. ALAS (Segitiga Bawah - lipat -90 derajat masuk ke dalam)
+        const hAlas = addHinge(pR1, 0, -height / 2, 0, 'x', -Math.PI / 2);
+        const pAlas = createCustomMesh(triGeom, colors.alas, "ALAS");
+        pAlas.rotation.z = Math.PI; // Putar agar puncaknya mengarah ke bawah
+        hAlas.add(pAlas);
+
+        // 5. ATAS (Segitiga Atas - lipat +90 derajat masuk ke dalam)
+        const hTutup = addHinge(pR1, 0, height / 2, 0, 'x', Math.PI / 2);
         const pTutup = createCustomMesh(triGeom, colors.tutup, "ATAS");
-        pTutup.rotation.z = Math.PI;
-        pTutup.position.set(0, -triHeight, 0);
         hTutup.add(pTutup);
 
+        unfoldGroup.rotation.x = 0;
+
+      } else if (key === 'tabung') {
+        const r = 1.0, h = 2.0;
+        const keliling = 2 * Math.PI * r;
+        const colors = { selimut: 0x10b981, atas: 0x3b82f6, alas: 0xf59e0b };
+
+        // 1. Selimut Tabung (Polos Tanpa Garis Hitam)
+        const selimutGeom = new THREE.PlaneGeometry(keliling, h, 64, 1);
+        const selimutMat = new THREE.MeshPhongMaterial({ color: colors.selimut, side: THREE.DoubleSide });
+        const selimutMesh = new THREE.Mesh(selimutGeom, selimutMat);
+
+        unfoldGroup.add(selimutMesh);
+
+        // Simpan posisi awal vertex
+        const origPos = selimutGeom.attributes.position.clone();
+
+        // 2. Tutup Atas & Alas
+        const circleGeom = new THREE.CircleGeometry(r, 32);
+
+        const hAtas = addHinge(unfoldGroup, 0, h/2, 0, 'x', Math.PI / 2);
+        const pAtas = createCustomMesh(circleGeom, colors.atas, "ATAS");
+        pAtas.position.set(0, r, 0);
+        hAtas.add(pAtas);
+
+        const hAlas = addHinge(unfoldGroup, 0, -h/2, 0, 'x', -Math.PI / 2);
+        const pAlas = createCustomMesh(circleGeom, colors.alas, "ALAS");
+        pAlas.position.set(0, -r, 0);
+        hAlas.add(pAlas);
+
         unfoldGroup.rotation.x = -Math.PI / 2;
 
-      function buildTabungNet(r = 1.0, h = 2.0, colorHex = 0x10b981) {
-  // 1. Hitung lebar selimut (Keliling = 2 * PI * r)
-  const keliling = 2 * Math.PI * r;
+        // 3. Efek Menggulung Selimut
+        const oldOnFold = window.onFoldSliderChange;
+        window.onFoldSliderChange = function(val) {
+          if (typeof oldOnFold === 'function') oldOnFold(val);
+          
+          if (currentShapeKey === 'tabung') {
+            const p = val / 100;
+            const pos = selimutGeom.attributes.position;
 
-  // 2. Buat Selimut dengan Grid/Subdivision yang Cukup Banyak (misal: 64 segmen horizontal)
-  // Agar bidang bisa melengkung halus tanpa patah-patah
-  const selimutGeom = new THREE.PlaneGeometry(keliling, h, 64, 1);
-  selimutGeom.rotateX(-Math.PI / 2); // Posisikan mendatar di lantai 3D
+            for (let i = 0; i < pos.count; i++) {
+              const x0 = origPos.getX(i);
+              const y0 = origPos.getY(i);
 
-  const selimutMat = new THREE.MeshPhongMaterial({
-    color: colorHex,
-    side: THREE.DoubleSide,
-    shininess: 40
-  });
-  const selimutMesh = new THREE.Mesh(selimutGeom, selimutMat);
+              if (p < 0.01) {
+                pos.setXYZ(i, x0, y0, 0);
+              } else {
+                const curR = r / p;
+                const angle = x0 / curR;
+                pos.setXYZ(i, curR * Math.sin(angle), y0, curR * (1 - Math.cos(angle)));
+              }
+            }
+            pos.needsUpdate = true;
+            selimutGeom.computeVertexNormals();
+          }
+        };
 
-  // Garis tepi/outline selimut
-  const edgesGeom = new THREE.EdgesGeometry(selimutGeom);
-  const lineMat = new THREE.LineBasicMaterial({ color: 0x1e293b, linewidth: 2 });
-  const selimutLine = new THREE.LineSegments(edgesGeom, lineMat);
-  selimutMesh.add(selimutLine);
+     } else if (key === 'kerucut') {
+        // === JARING-JARING KERUCUT ===
+        // Jaring = 1 juring lingkaran (selimut) + 1 lingkaran (alas) yang menyentuh busur juring.
+        //   r = jari-jari alas, l = garis pelukis (s), sudut juring = 2π × r / l
+        const r = 1.0;
+        const l = 2.5;
+        const A = Math.PI * r / l;              // setengah sudut juring
+        const betaEnd = Math.asin(r / l);       // setengah sudut puncak kerucut saat tertutup
+        const N = 72;                           // segmen busur selimut
+        const M = 64;                           // segmen lingkaran alas
+        const colors = { alas: 0xec4899, selimut: 0x3b82f6 };
 
-  unfoldGroup.add(selimutMesh);
+        // 1. SELIMUT: juring yang digulung (geometri diperbarui tiap frame)
+        const sPos = new Float32Array((N + 2) * 3);   // apex + (N+1) titik busur
+        const oPos = new Float32Array((N + 3) * 3);   // garis tepi: apex -> busur -> apex
+        const sectorGeom = new THREE.BufferGeometry();
+        sectorGeom.setAttribute('position', new THREE.BufferAttribute(sPos, 3));
+        const idx = [];
+        for (let i = 0; i < N; i++) idx.push(0, i + 1, i + 2);
+        sectorGeom.setIndex(idx);
 
-  // 3. Buat Tutup Atas dan Alas Bawah (Bentuk Lingkaran)
-  const circleGeom = new THREE.CircleGeometry(r, 32);
-  circleGeom.rotateX(-Math.PI / 2);
+        const sectorMat = new THREE.MeshPhongMaterial({
+          color: colors.selimut, side: THREE.DoubleSide, shininess: 50,
+          polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1
+        });
+        const sectorMesh = new THREE.Mesh(sectorGeom, sectorMat);
+        sectorMesh.frustumCulled = false;   // geometri berubah, jangan sampai ter-cull
+        unfoldGroup.add(sectorMesh);
 
-  // Engsel Tutup Atas
-  const pivotTop = new THREE.Group();
-  pivotTop.position.set(0, 0, -h / 2);
-  const meshTop = new THREE.Mesh(circleGeom, selimutMat);
-  meshTop.position.set(0, 0, -r); // Geser pusat lingkaran ke tepi engsel
-  pivotTop.add(meshTop);
-  unfoldGroup.add(pivotTop);
+        const outlineGeom = new THREE.BufferGeometry();
+        outlineGeom.setAttribute('position', new THREE.BufferAttribute(oPos, 3));
+        const outline = new THREE.Line(outlineGeom, new THREE.LineBasicMaterial({ color: 0x0f172a }));
+        outline.frustumCulled = false;
+        unfoldGroup.add(outline);
 
-  // Engsel Alas Bawah
-  const pivotBottom = new THREE.Group();
-  pivotBottom.position.set(0, 0, h / 2);
-  const meshBottom = new THREE.Mesh(circleGeom, selimutMat);
-  meshBottom.position.set(0, 0, r); // Geser pusat lingkaran ke tepi engsel
-  pivotBottom.add(meshBottom);
-  unfoldGroup.add(pivotBottom);
+        const selimutLabel = makeLabelPlane('SELIMUT', { y: -l * 0.55 });
+        unfoldGroup.add(selimutLabel);
 
-  // Simpan koordinat awal selimut untuk referensi transformasi
-  const originalPositions = selimutGeom.attributes.position.clone();
+        // 2. ALAS: lingkaran yang menyentuh busur di titik tengahnya, dilipat lewat engsel
+        const hingeGroup = new THREE.Group();
+        hingeGroup.position.set(0, -l, 0);
+        unfoldGroup.add(hingeGroup);
 
-  // 4. Fungsi Pembaru Animasi (Dipanggil setiap slider digeser)
-  return function updateFold(progress) { // progress nilai 0.0 sampai 1.0
-    // Melipat Tutup & Alas 90 derajat
-    pivotTop.rotation.x = -(Math.PI / 2) * progress;
-    pivotBottom.rotation.x = (Math.PI / 2) * progress;
+        const pAlas = createCustomMesh(new THREE.CircleGeometry(r, M), colors.alas, 'ALAS');
+        pAlas.position.set(0, -r, 0);
+        hingeGroup.add(pAlas);
+        const alasLabel = pAlas.getObjectByName('label');
 
-    // Transformasi Menggulung Selimut
-    const positionAttr = selimutGeom.attributes.position;
-    
-    for (let i = 0; i < positionAttr.count; i++) {
-      const x0 = originalPositions.getX(i);
-      const y0 = originalPositions.getY(i);
-      const z0 = originalPositions.getZ(i);
+        // Titik-titik tepi alas, dipakai untuk meletakkan jaring tepat di lantai & di tengah
+        const rimLocal = [];
+        for (let k = 0; k < 32; k++) {
+          const a = (2 * Math.PI * k) / 32;
+          rimLocal.push(new THREE.Vector3(r * Math.cos(a), r * Math.sin(a), 0));
+        }
+        const tmp = new THREE.Vector3();
 
-      if (progress < 0.001) {
-        // Posisi Datar Sempurna (0%)
-        positionAttr.setXYZ(i, x0, y0, z0);
-      } else {
-        // Posisi Menggulung Lengkung (1% - 100%)
-        const currentRadius = r / progress;
-        const angle = x0 / currentRadius;
+        // 3. POSE untuk fraksi lipatan f (0 = jaring datar, 1 = kerucut utuh)
+        function poseKerucut(f) {
+          f = Math.min(1, Math.max(0, f));
 
-        const newX = currentRadius * Math.sin(angle);
-        const newZ = z0 - (currentRadius * (1 - Math.cos(angle)));
+          // Gulungan isometrik: juring digulung jadi kerucut dengan setengah sudut puncak 'beta'
+          // beta: 90° (datar) -> betaEnd (tertutup). Panjang garis pelukis tetap = l.
+          const beta = Math.PI / 2 + (betaEnd - Math.PI / 2) * f;
+          const sinB = Math.sin(beta);
+          const cosB = Math.cos(beta);
 
-        positionAttr.setXYZ(i, newX, y0, newZ);
-      }
-    }
+          sPos[0] = sPos[1] = sPos[2] = 0;
+          oPos[0] = oPos[1] = oPos[2] = 0;
+          for (let i = 0; i <= N; i++) {
+            const t = -A + (2 * A * i) / N;
+            const phi = t / sinB;                               // sudut keliling setelah digulung
+            const x = l * sinB * Math.sin(phi);
+            const y = -l * (cosB * cosB + sinB * sinB * Math.cos(phi));
+            const z = l * sinB * cosB * (1 - Math.cos(phi));
+            const k = (i + 1) * 3;
+            sPos[k] = x; sPos[k + 1] = y; sPos[k + 2] = z;
+            oPos[k] = x; oPos[k + 1] = y; oPos[k + 2] = z;
+          }
+          const kEnd = (N + 2) * 3;
+          oPos[kEnd] = oPos[kEnd + 1] = oPos[kEnd + 2] = 0;
+          sectorGeom.attributes.position.needsUpdate = true;
+          outlineGeom.attributes.position.needsUpdate = true;
+          sectorGeom.computeVertexNormals();
 
-    positionAttr.needsUpdate = true;
-    selimutGeom.computeVertexNormals(); // Perbarui pencahayaan lengkungan
-  };
-}
+          // Alas dilipat pada engsel (garis singgung di tengah busur) sampai menutup bawah kerucut
+          hingeGroup.rotation.x = -(Math.PI / 2 + betaEnd) * f;
 
-      } else if (key === 'kerucut') {
-        const r = 1.2, h = 2.2;
-        const s = Math.sqrt(r*r + h*h);
-        const colors = { alas: 0xa855f7, sector: 0xec4899 };
+          // Jaring rebah di lantai perlahan berdiri tegak (puncak di atas, alas di lantai)
+          unfoldGroup.rotation.x = -Math.PI / 2 + (Math.PI / 2 + betaEnd) * f;
 
-        // Unfolded cone base circle
-        const baseCircle = createCustomMesh(new THREE.CircleGeometry(r, 32), colors.alas, "ALAS");
-        unfoldGroup.add(baseCircle);
+          // Label memudar saat jaring mulai terlipat
+          const op = Math.max(0, 1 - f * 5);
+          [selimutLabel, alasLabel].forEach(lb => {
+            if (lb) { lb.material.opacity = op; lb.visible = op > 0.02; }
+          });
 
-        // Unfolded sector approximation (4 sector panels)
-        const sectorAngle = (r / s) * (Math.PI / 2);
-        for (let i = 0; i < 4; i++) {
-          const triGeom = new THREE.BufferGeometry();
-          const vertices = new Float32Array([
-            0, 0, 0,
-            s * Math.cos(-sectorAngle/2), s * Math.sin(-sectorAngle/2), 0,
-            s * Math.cos(sectorAngle/2), s * Math.sin(sectorAngle/2), 0
-          ]);
-          triGeom.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
-          triGeom.computeVertexNormals();
-
-          const angleOffset = (i - 1.5) * sectorAngle;
-          const hSector = addHinge(baseCircle, r * Math.cos(angleOffset), r * Math.sin(angleOffset), 0, 'z', angleOffset);
-          const pSector = createCustomMesh(triGeom, colors.sector);
-          hSector.add(pSector);
+          // Letakkan di lantai (y = 0) dan di tengah (x, z)
+          unfoldGroup.position.set(0, 0, 0);
+          unfoldGroup.updateMatrixWorld(true);
+          let minX = Infinity, maxX = -Infinity, minY = Infinity, minZ = Infinity, maxZ = -Infinity;
+          const consider = (v) => {
+            if (v.x < minX) minX = v.x;
+            if (v.x > maxX) maxX = v.x;
+            if (v.y < minY) minY = v.y;
+            if (v.z < minZ) minZ = v.z;
+            if (v.z > maxZ) maxZ = v.z;
+          };
+          for (let i = 0; i < N + 2; i++) {
+            tmp.set(sPos[i * 3], sPos[i * 3 + 1], sPos[i * 3 + 2]).applyMatrix4(unfoldGroup.matrixWorld);
+            consider(tmp);
+          }
+          rimLocal.forEach(p => {
+            tmp.copy(p).applyMatrix4(pAlas.matrixWorld);
+            consider(tmp);
+          });
+          unfoldGroup.position.set(-(minX + maxX) / 2, -minY, -(minZ + maxZ) / 2);
         }
 
-        unfoldGroup.rotation.x = -Math.PI / 2;
+        customFoldHandler = poseKerucut;   // dipanggil oleh onFoldSliderChange
+        poseKerucut(0);
 
       } else {
         // Fallback for Sphere
@@ -990,6 +1062,8 @@
         if (h.axis === 'y') h.group.rotation.y = targetAngle;
         if (h.axis === 'z') h.group.rotation.z = targetAngle;
       });
+
+      if (typeof customFoldHandler === 'function') customFoldHandler(percent);
     }
 
     function setViewMode(mode) {
