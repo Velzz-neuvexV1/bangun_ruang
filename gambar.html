@@ -1,0 +1,1124 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simulasi Menggambar Bangun Ruang - Futuristik</title>
+  
+  <script id="lumi-getcssvar">
+  window.getCssVar = window.getCssVar || function(name) {
+    try {
+      return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    } catch (e) { return ''; }
+  };
+  </script>
+
+  <style id="lumi-runtime">
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+
+    :root {
+      --body-bg: #090d16;
+      --surface-bright: #121826;
+      --surface-dim: #0d121f;
+      --surface-glass: rgba(18, 24, 38, 0.75);
+      --on-surface: #f1f5f9;
+      --on-surface-variant: #94a3b8;
+      --primary: #6366f1;
+      --primary-glow: rgba(99, 102, 241, 0.35);
+      --accent: #38bdf8;
+      --accent-container: rgba(56, 189, 248, 0.15);
+      --stroke-default: rgba(255, 255, 255, 0.1);
+      --stroke-glow: rgba(99, 102, 241, 0.4);
+      
+      --r-full: 9999px;
+      --r-l: 20px;
+      --r-m: 14px;
+      --r-s: 10px;
+
+      --ff-sans: 'Plus Jakarta Sans', sans-serif;
+      --ff-mono: 'JetBrains Mono', monospace;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--body-bg);
+      color: var(--on-surface);
+      font-family: var(--ff-sans);
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .widget-container {
+      width: 100%;
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    /* Futuristik Header Card */
+    .header-card {
+      padding: 20px 24px;
+      background: var(--surface-glass);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-radius: var(--r-l);
+      border: 1px solid var(--stroke-default);
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .header-card h2 {
+      margin: 0 0 4px 0;
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      background: linear-gradient(135deg, #ffffff 0%, #a5b4fc 100%);
+      background-clip: text;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .header-card p {
+      margin: 0;
+      font-size: 13px;
+      color: var(--on-surface-variant);
+    }
+
+    /* Tab Switcher */
+    .nav-tabs {
+      display: flex;
+      gap: 6px;
+      background: var(--surface-dim);
+      padding: 5px;
+      border-radius: var(--r-full);
+      border: 1px solid var(--stroke-default);
+    }
+
+    .nav-tab {
+      flex: 1;
+      padding: 10px 18px;
+      border: none;
+      border-radius: var(--r-full);
+      background: transparent;
+      color: var(--on-surface-variant);
+      font-family: var(--ff-sans);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      text-align: center;
+    }
+
+    .nav-tab.is-active {
+      background: var(--primary);
+      color: #ffffff;
+      box-shadow: 0 0 20px var(--primary-glow);
+    }
+
+    /* Shape Selector Chips */
+    .shape-selector {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+    }
+
+    .shape-chip {
+      padding: 8px 18px;
+      border-radius: var(--r-full);
+      border: 1px solid var(--stroke-default);
+      background: var(--surface-bright);
+      color: var(--on-surface-variant);
+      font-family: var(--ff-sans);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .shape-chip:hover {
+      border-color: var(--stroke-glow);
+      color: var(--on-surface);
+    }
+
+    .shape-chip.is-active {
+      background: var(--accent-container);
+      color: var(--accent);
+      border-color: var(--accent);
+      font-weight: 700;
+      box-shadow: 0 0 15px rgba(56, 189, 248, 0.2);
+    }
+
+    /* Viewport Panel */
+    .viewport-card {
+      background: var(--surface-glass);
+      backdrop-filter: blur(16px);
+      border-radius: var(--r-l);
+      border: 1px solid var(--stroke-default);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+    }
+
+    .step-banner {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--surface-dim);
+      padding: 12px 18px;
+      border-radius: var(--r-m);
+      border: 1px solid var(--stroke-default);
+      font-size: 14px;
+    }
+
+    .step-badge {
+      background: linear-gradient(135deg, var(--primary), #818cf8);
+      color: #ffffff;
+      font-weight: 700;
+      padding: 4px 12px;
+      border-radius: var(--r-full);
+      font-size: 12px;
+      white-space: nowrap;
+      letter-spacing: 0.5px;
+      font-family: var(--ff-mono);
+    }
+
+    .step-desc {
+      flex: 1;
+      color: var(--on-surface);
+      font-weight: 500;
+    }
+
+    /* Papan Tulis / Canvas Viewport - PERBESARAN UKURAN */
+    .widget-viewport {
+      position: relative;
+      width: 100%;
+      height: 520px; /* Ukuran diperbesar untuk visibilitas maksimal */
+      overflow: hidden;
+      border-radius: var(--r-m);
+      background: #060911;
+      border: 1px solid var(--stroke-glow);
+      box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.8);
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      touch-action: none;
+    }
+
+    /* Control Deck */
+    .control-deck {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding: 16px 20px;
+      background: var(--surface-dim);
+      border-radius: var(--r-m);
+      border: 1px solid var(--stroke-default);
+    }
+
+    .control-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .btn-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .lumi-btn-icon {
+      padding: 8px 16px;
+      border-radius: var(--r-full);
+      border: 1px solid var(--stroke-default);
+      background: var(--surface-bright);
+      color: var(--on-surface);
+      font-family: var(--ff-sans);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .lumi-btn-icon:hover {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #ffffff;
+      box-shadow: 0 0 12px var(--primary-glow);
+    }
+
+    .speed-select {
+      padding: 8px 14px;
+      border-radius: var(--r-full);
+      border: 1px solid var(--stroke-default);
+      background: var(--surface-bright);
+      color: var(--on-surface);
+      font-family: var(--ff-sans);
+      font-size: 13px;
+      cursor: pointer;
+      outline: none;
+      transition: all 0.2s;
+    }
+
+    .speed-select:hover {
+      border-color: var(--accent);
+    }
+
+    .toggle-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      cursor: pointer;
+      user-select: none;
+      color: var(--on-surface-variant);
+      font-weight: 500;
+    }
+
+    .toggle-label input[type="checkbox"] {
+      accent-color: var(--primary);
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+    }
+
+    /* Practice controls overlay */
+    .practice-toolbar {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+    }
+
+    .practice-hints {
+      font-size: 13px;
+      color: var(--on-surface-variant);
+    }
+  </style>
+</head>
+<body>
+  <div class="widget-container">
+      <!-- Header Card -->
+      <div class="header-card flex items-center justify-between" id="main-header">
+        <div>
+          <h2>Simulasi Menggambar Bangun Ruang</h2>
+          <p>Visualisasi langkah demi langkah menggambar geometri 3D presisi.</p>
+        </div>
+
+        <!-- Kakak pakai style= untuk memaksa posisinya terbang ke kanan luar! -->
+        <a href="mtkv2.html" style="position: absolute; right: -180px; top: -10px; z-index: 50;" class="inline-flex items-center justify-center hover:opacity-80 transition-opacity" title="Kembali ke Beranda">
+          <svg width="26" height="26" viewBox="0 0 32 32" fill="none" xmlns="http://w3.org">
+            <circle cx="16" cy="16" r="16" fill="#635BFF"/>
+            <path d="M19 10L13 16L19 22" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </a>
+
+
+          <!-- Kapsul Tab Navigasi Utuh Tanpa Elemen Lain Di Dalamnya -->
+          <div class="nav-tabs flex items-center">
+            <button class="nav-tab is-active" id="tab-viz" onclick="switchTab('viz')">Visualisasi</button>
+            <button class="nav-tab" id="tab-practice" onclick="switchTab('practice')">Latihan Menggambar</button>
+          </div>
+        </div>
+      </div>
+
+    <!-- Shape Selector -->
+    <div class="shape-selector" id="shape-selector">
+      <!-- Generated via JS -->
+    </div>
+
+    <!-- Viewport Panel: Visualisasi -->
+    <div id="panel-viz" class="viewport-card">
+      <div class="step-banner">
+        <span class="step-badge" id="step-badge">Langkah 1/4</span>
+        <span class="step-desc" id="step-desc">Membuat garis alas...</span>
+      </div>
+
+      <div class="widget-viewport">
+        <canvas id="vizCanvas"></canvas>
+      </div>
+
+      <!-- Control Deck -->
+      <div class="control-deck">
+        <div class="control-row">
+          <!-- Group Tombol Kontrol Kiri -->
+          <div class="btn-group">
+            <button class="lumi-btn-icon" onclick="prevStep()">&larr; Prev</button>
+            <button class="lumi-btn-icon" id="btn-play" onclick="togglePlay()">Pause</button>
+            <button class="lumi-btn-icon" onclick="nextStep()">Next &rarr;</button>
+            <button class="lumi-btn-icon" onclick="replayStep()">Replay</button>
+            
+            <!-- Tombol Full Screen dipindahkan di samping Replay -->
+            <button class="lumi-btn-icon" id="btn-fullscreen" onclick="toggleFullScreen()" title="Layar Penuh">
+              <span id="fs-icon">&#x26F6;</span> <span id="fs-text">Full Screen</span>
+            </button>
+          </div>
+
+          <!-- Group Tombol Kontrol Kanan -->
+          <div class="btn-group">
+            <select class="speed-select" id="speed-select" onchange="changeSpeed(this.value)">
+              <option value="0.5">0.5x Speed</option>
+              <option value="1" selected>1.0x Speed</option>
+              <option value="1.8">1.8x Speed</option>
+            </select>
+
+            <label class="toggle-label">
+              <input type="checkbox" id="chk-dashed" checked onchange="toggleDashed(this.checked)">
+              Rusuk Tersembunyi
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Viewport Panel: Latihan -->
+    <div id="panel-practice" class="viewport-card" style="display: none;">
+      <div class="practice-toolbar">
+        <span class="practice-hints">Gunakan area papan tulis untuk berlatih menggambar secara bebas dengan bantuan grid.</span>
+        <div class="btn-group">
+          <button class="lumi-btn-icon" onclick="clearPracticeCanvas()">Bersihkan</button>
+          <button class="lumi-btn-icon" onclick="toggleTraceGuide()">Toggle Panduan</button>
+        </div>
+      </div>
+
+      <div class="widget-viewport">
+        <canvas id="practiceCanvas" tabindex="0"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Fungsi Fitur Full Screen
+      function toggleFullScreen() {
+        const elem = document.documentElement;
+        const fsText = document.getElementById('fs-text');
+        
+        if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+          if (elem.requestFullscreen) {
+            elem.requestFullscreen();
+          } else if (elem.webkitRequestFullscreen) { /* Safari */
+            elem.webkitRequestFullscreen();
+          }
+          if (fsText) fsText.textContent = "Exit Full Screen";
+        } else {
+          if (document.exitFullscreen) {
+            document.exitFullscreen();
+          } else if (document.webkitExitFullscreen) { /* Safari */
+            document.webkitExitFullscreen();
+          }
+          if (fsText) fsText.textContent = "Full Screen";
+        }
+      }
+
+      // Reset teks tombol saat pengguna menekan tombol Esc di keyboard
+      document.addEventListener('fullscreenchange', () => {
+        const fsText = document.getElementById('fs-text');
+        if (!document.fullscreenElement && fsText) {
+          fsText.textContent = "Full Screen";
+        }
+      });
+
+      // Listener untuk menyesuaikan teks tombol saat keluar Full Screen via tombol Esc Keyboard
+      document.addEventListener('fullscreenchange', () => {
+        const fsText = document.getElementById('fs-text');
+        if (!document.fullscreenElement && fsText) {
+          fsText.textContent = "Full Screen";
+        }
+      });
+    // State Application
+    const state = {
+      activeTab: 'viz',
+      activeShape: 'kubus',
+      currentStep: 0,
+      isPlaying: true,
+      progress: 0,
+      speed: 1,
+      showDashed: true,
+      showGuide: true
+    };
+
+    // Geometry Helpers
+    function drawPointLabel(ctx, x, y, label, offset = {x: -12, y: -8}) {
+      ctx.save();
+      ctx.fillStyle = '#f8fafc';
+      ctx.font = "bold 14px 'Plus Jakarta Sans', sans-serif";
+      ctx.fillText(label, x + offset.x, y + offset.y);
+      ctx.beginPath();
+      ctx.arc(x, y, 4, 0, Math.PI * 2);
+      ctx.fillStyle = '#38bdf8';
+      ctx.fill();
+      ctx.restore();
+    }
+
+    function drawLine(ctx, x1, y1, x2, y2, isDashed = false, progress = 1, color = null) {
+      if (progress <= 0) return;
+      const strokeColor = color || '#38bdf8';
+      ctx.save();
+      ctx.beginPath();
+      ctx.strokeStyle = strokeColor;
+      ctx.lineWidth = 2.5;
+      ctx.lineCap = 'round';
+      if (isDashed && state.showDashed) {
+        ctx.setLineDash([6, 6]);
+        ctx.strokeStyle = '#94a3b8';
+      } else if (isDashed && !state.showDashed) {
+        ctx.strokeStyle = 'transparent';
+      }
+      
+      const currX = x1 + (x2 - x1) * Math.min(progress, 1);
+      const currY = y1 + (y2 - y1) * Math.min(progress, 1);
+
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(currX, currY);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function drawEllipseArc(ctx, cx, cy, rx, ry, startAngle, endAngle, isDashed = false, progress = 1) {
+      if (progress <= 0) return;
+      ctx.save();
+      ctx.beginPath();
+      ctx.strokeStyle = isDashed ? '#94a3b8' : '#38bdf8';
+      ctx.lineWidth = 2.5;
+      if (isDashed && state.showDashed) {
+        ctx.setLineDash([6, 6]);
+      } else if (isDashed && !state.showDashed) {
+        ctx.strokeStyle = 'transparent';
+      }
+      
+      const currentEnd = startAngle + (endAngle - startAngle) * Math.min(progress, 1);
+      ctx.ellipse(cx, cy, rx, ry, 0, startAngle, currentEnd);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    // Shapes Data Definition
+    const SHAPES = {
+      kubus: {
+        name: 'Kubus',
+        steps: [
+          {
+            desc: 'Gambar persegi depan dengan titik sudut A, B, C, D',
+            draw: (ctx, p, w, h) => {
+              const cx = w / 2 - 40, cy = h / 2 + 30, s = 180;
+              const A = {x: cx - s/2, y: cy + s/2}, B = {x: cx + s/2, y: cy + s/2};
+              const C = {x: cx + s/2, y: cy - s/2}, D = {x: cx - s/2, y: cy - s/2};
+              
+              drawLine(ctx, A.x, A.y, B.x, B.y, false, p);
+              if (p > 0.25) drawLine(ctx, B.x, B.y, C.x, C.y, false, (p - 0.25)*4);
+              if (p > 0.50) drawLine(ctx, C.x, C.y, D.x, D.y, false, (p - 0.50)*4);
+              if (p > 0.75) drawLine(ctx, D.x, D.y, A.x, A.y, false, (p - 0.75)*4);
+
+              drawPointLabel(ctx, A.x, A.y, 'A', {x: -18, y: 18});
+              drawPointLabel(ctx, B.x, B.y, 'B', {x: 10, y: 18});
+              if (p > 0.3) drawPointLabel(ctx, C.x, C.y, 'C', {x: 10, y: -10});
+              if (p > 0.6) drawPointLabel(ctx, D.x, D.y, 'D', {x: -18, y: -10});
+            }
+          },
+          {
+            desc: 'Gambar garis proyeksi miring ke belakang dari setiap titik sudut',
+            draw: (ctx, p, w, h) => {
+              SHAPES.kubus.steps[0].draw(ctx, 1, w, h);
+              const cx = w / 2 - 40, cy = h / 2 + 30, s = 180, dx = 80, dy = -60;
+              const A = {x: cx - s/2, y: cy + s/2}, B = {x: cx + s/2, y: cy + s/2};
+              const C = {x: cx + s/2, y: cy - s/2}, D = {x: cx - s/2, y: cy - s/2};
+
+              drawLine(ctx, A.x, A.y, A.x + dx, A.y + dy, true, p);
+              drawLine(ctx, B.x, B.y, B.x + dx, B.y + dy, false, p);
+              drawLine(ctx, C.x, C.y, C.x + dx, C.y + dy, false, p);
+              drawLine(ctx, D.x, D.y, D.x + dx, D.y + dy, false, p);
+            }
+          },
+          {
+            desc: 'Hubungkan titik-titik belakang untuk membentuk persegi belakang (E, F, G, H)',
+            draw: (ctx, p, w, h) => {
+              SHAPES.kubus.steps[1].draw(ctx, 1, w, h);
+              const cx = w / 2 - 40, cy = h / 2 + 30, s = 180, dx = 80, dy = -60;
+              const A = {x: cx - s/2, y: cy + s/2}, B = {x: cx + s/2, y: cy + s/2};
+              const C = {x: cx + s/2, y: cy - s/2}, D = {x: cx - s/2, y: cy - s/2};
+              const E = {x: A.x + dx, y: A.y + dy}, F = {x: B.x + dx, y: B.y + dy};
+              const G = {x: C.x + dx, y: C.y + dy}, H = {x: D.x + dx, y: D.y + dy};
+
+              drawLine(ctx, E.x, E.y, F.x, F.y, true, p);
+              drawLine(ctx, E.x, E.y, H.x, H.y, true, p);
+              drawLine(ctx, F.x, F.y, G.x, G.y, false, p);
+              drawLine(ctx, H.x, H.y, G.x, G.y, false, p);
+
+              drawPointLabel(ctx, E.x, E.y, 'E', {x: -18, y: -10});
+              drawPointLabel(ctx, F.x, F.y, 'F', {x: 10, y: 18});
+              drawPointLabel(ctx, G.x, G.y, 'G', {x: 10, y: -10});
+              drawPointLabel(ctx, H.x, H.y, 'H', {x: -10, y: -14});
+            }
+          }
+        ]
+      },
+
+      balok: {
+        name: 'Balok',
+        steps: [
+          {
+            desc: 'Gambar persegi panjang depan A, B, C, D (panjang > tinggi)',
+            draw: (ctx, p, w, h) => {
+              const cx = w / 2 - 40, cy = h / 2 + 30, bw = 240, bh = 130;
+              const A = {x: cx - bw/2, y: cy + bh/2}, B = {x: cx + bw/2, y: cy + bh/2};
+              const C = {x: cx + bw/2, y: cy - bh/2}, D = {x: cx - bw/2, y: cy - bh/2};
+
+              drawLine(ctx, A.x, A.y, B.x, B.y, false, p);
+              if (p > 0.25) drawLine(ctx, B.x, B.y, C.x, C.y, false, (p - 0.25)*4);
+              if (p > 0.50) drawLine(ctx, C.x, C.y, D.x, D.y, false, (p - 0.50)*4);
+              if (p > 0.75) drawLine(ctx, D.x, D.y, A.x, A.y, false, (p - 0.75)*4);
+
+              drawPointLabel(ctx, A.x, A.y, 'A', {x: -18, y: 18});
+              drawPointLabel(ctx, B.x, B.y, 'B', {x: 10, y: 18});
+              if (p > 0.3) drawPointLabel(ctx, C.x, C.y, 'C', {x: 10, y: -10});
+              if (p > 0.6) drawPointLabel(ctx, D.x, D.y, 'D', {x: -18, y: -10});
+            }
+          },
+          {
+            desc: 'Tarik rusuk sejajar miring ke kanan atas (lebar balok)',
+            draw: (ctx, p, w, h) => {
+              SHAPES.balok.steps[0].draw(ctx, 1, w, h);
+              const cx = w / 2 - 40, cy = h / 2 + 30, bw = 240, bh = 130, dx = 80, dy = -55;
+              const A = {x: cx - bw/2, y: cy + bh/2}, B = {x: cx + bw/2, y: cy + bh/2};
+              const C = {x: cx + bw/2, y: cy - bh/2}, D = {x: cx - bw/2, y: cy - bh/2};
+
+              drawLine(ctx, A.x, A.y, A.x + dx, A.y + dy, true, p);
+              drawLine(ctx, B.x, B.y, B.x + dx, B.y + dy, false, p);
+              drawLine(ctx, C.x, C.y, C.x + dx, C.y + dy, false, p);
+              drawLine(ctx, D.x, D.y, D.x + dx, D.y + dy, false, p);
+            }
+          },
+          {
+            desc: 'Lengkapi dengan sisi belakang (garis putus-putus untuk rusuk tersembunyi)',
+            draw: (ctx, p, w, h) => {
+              SHAPES.balok.steps[1].draw(ctx, 1, w, h);
+              const cx = w / 2 - 40, cy = h / 2 + 30, bw = 240, bh = 130, dx = 80, dy = -55;
+              const A = {x: cx - bw/2, y: cy + bh/2}, B = {x: cx + bw/2, y: cy + bh/2};
+              const C = {x: cx + bw/2, y: cy - bh/2}, D = {x: cx - bw/2, y: cy - bh/2};
+              const E = {x: A.x + dx, y: A.y + dy}, F = {x: B.x + dx, y: B.y + dy};
+              const G = {x: C.x + dx, y: C.y + dy}, H = {x: D.x + dx, y: D.y + dy};
+
+              drawLine(ctx, E.x, E.y, F.x, F.y, true, p);
+              drawLine(ctx, E.x, E.y, H.x, H.y, true, p);
+              drawLine(ctx, F.x, F.y, G.x, G.y, false, p);
+              drawLine(ctx, H.x, H.y, G.x, G.y, false, p);
+
+              drawPointLabel(ctx, E.x, E.y, 'E', {x: -18, y: -10});
+              drawPointLabel(ctx, F.x, F.y, 'F', {x: 10, y: 18});
+              drawPointLabel(ctx, G.x, G.y, 'G', {x: 10, y: -10});
+              drawPointLabel(ctx, H.x, H.y, 'H', {x: -10, y: -14});
+            }
+          }
+        ]
+      },
+
+      prisma: {
+        name: 'Prisma Segitiga',
+        steps: [
+          {
+            desc: 'Gambar alas segitiga ABC: A (kiri depan), B (kanan depan), C (belakang - putus-putus)',
+            draw: (ctx, p, w, h) => {
+              const cx = w / 2, cy = h / 2 + 90;
+              const A = {x: cx - 130, y: cy}, B = {x: cx + 110, y: cy + 15}, C = {x: cx, y: cy - 65};
+
+              drawLine(ctx, A.x, A.y, B.x, B.y, false, p);
+              if (p > 0.5) {
+                drawLine(ctx, B.x, B.y, C.x, C.y, true, (p - 0.5)*2);
+                drawLine(ctx, C.x, C.y, A.x, A.y, true, (p - 0.5)*2);
+              }
+
+              drawPointLabel(ctx, A.x, A.y, 'A', {x: -18, y: 18});
+              drawPointLabel(ctx, B.x, B.y, 'B', {x: 10, y: 18});
+              if (p > 0.5) drawPointLabel(ctx, C.x, C.y, 'C', {x: 6, y: -10});
+            }
+          },
+          {
+            desc: 'Tarik tinggi tegak lurus: AD & BE (tegas), CF (putus-putus di belakang)',
+            draw: (ctx, p, w, h) => {
+              SHAPES.prisma.steps[0].draw(ctx, 1, w, h);
+              const cx = w / 2, cy = h / 2 + 90, H = 180;
+              const A = {x: cx - 130, y: cy}, B = {x: cx + 110, y: cy + 15}, C = {x: cx, y: cy - 65};
+              const D = {x: A.x, y: A.y - H}, E = {x: B.x, y: B.y - H}, F = {x: C.x, y: C.y - H};
+
+              drawLine(ctx, A.x, A.y, D.x, D.y, false, p);
+              drawLine(ctx, B.x, B.y, E.x, E.y, false, p);
+              drawLine(ctx, C.x, C.y, F.x, F.y, true, p);
+
+              drawPointLabel(ctx, D.x, D.y, 'D', {x: -18, y: -10});
+              drawPointLabel(ctx, E.x, E.y, 'E', {x: 10, y: -10});
+              drawPointLabel(ctx, F.x, F.y, 'F', {x: 6, y: -14});
+            }
+          },
+          {
+            desc: 'Hubungkan bidang atas DE, EF, dan DF dengan garis tegas',
+            draw: (ctx, p, w, h) => {
+              SHAPES.prisma.steps[1].draw(ctx, 1, w, h);
+              const cx = w / 2, cy = h / 2 + 90, H = 180;
+              const D = {x: cx - 130, y: cy - H}, E = {x: cx + 110, y: cy + 15 - H}, F = {x: cx, y: cy - 65 - H};
+
+              drawLine(ctx, D.x, D.y, E.x, E.y, false, p);
+              drawLine(ctx, E.x, E.y, F.x, F.y, false, p);
+              drawLine(ctx, F.x, F.y, D.x, D.y, false, p);
+            }
+          }
+        ]
+      },
+
+      limas: {
+        name: 'Limas Segi Empat',
+        steps: [
+          {
+            desc: 'Gambar alas jajargenjang ABCD (AB, BC tegas; CD, DA putus-putus)',
+            draw: (ctx, p, w, h) => {
+              const cx = w / 2 - 30, cy = h / 2 + 80, bw = 180, bh = 70;
+              const A = {x: cx - bw/2, y: cy + bh/2}, B = {x: cx + bw/2, y: cy + bh/2};
+              const C = {x: cx + bw/2 + 50, y: cy - bh/2}, D = {x: cx - bw/2 + 50, y: cy - bh/2};
+
+              drawLine(ctx, A.x, A.y, B.x, B.y, false, p);
+              if (p > 0.3) drawLine(ctx, B.x, B.y, C.x, C.y, false, (p - 0.3)*3);
+              if (p > 0.6) drawLine(ctx, C.x, C.y, D.x, D.y, true, (p - 0.6)*3);
+              if (p > 0.8) drawLine(ctx, D.x, D.y, A.x, A.y, true, (p - 0.8)*5);
+
+              drawPointLabel(ctx, A.x, A.y, 'A', {x: -18, y: 18});
+              drawPointLabel(ctx, B.x, B.y, 'B', {x: 10, y: 18});
+              if (p > 0.3) drawPointLabel(ctx, C.x, C.y, 'C', {x: 10, y: -10});
+              if (p > 0.6) drawPointLabel(ctx, D.x, D.y, 'D', {x: -18, y: -10});
+            }
+          },
+          {
+            desc: 'Tentukan titik puncak T tegak lurus di atas pusat alas',
+            draw: (ctx, p, w, h) => {
+              SHAPES.limas.steps[0].draw(ctx, 1, w, h);
+              const cx = w / 2 - 30, cy = h / 2 + 80;
+              const T = {x: cx + 25, y: cy - 170};
+
+              if (p > 0) {
+                drawLine(ctx, cx + 25, cy, T.x, T.y, true, p, 'rgba(148, 163, 184, 0.4)');
+                drawPointLabel(ctx, T.x, T.y, 'T', {x: -6, y: -14});
+              }
+            }
+          },
+          {
+            desc: 'Hubungkan titik T ke A, B, C (tegas) dan T ke D (putus-putus)',
+            draw: (ctx, p, w, h) => {
+              SHAPES.limas.steps[1].draw(ctx, 1, w, h);
+              const cx = w / 2 - 30, cy = h / 2 + 80, bw = 180, bh = 70;
+              const A = {x: cx - bw/2, y: cy + bh/2}, B = {x: cx + bw/2, y: cy + bh/2};
+              const C = {x: cx + bw/2 + 50, y: cy - bh/2}, D = {x: cx - bw/2 + 50, y: cy - bh/2};
+              const T = {x: cx + 25, y: cy - 170};
+
+              drawLine(ctx, T.x, T.y, A.x, A.y, false, p);
+              drawLine(ctx, T.x, T.y, B.x, B.y, false, p);
+              drawLine(ctx, T.x, T.y, C.x, C.y, false, p);
+              drawLine(ctx, T.x, T.y, D.x, D.y, true, p);
+            }
+          }
+        ]
+      },
+
+      tabung: {
+        name: 'Tabung',
+        steps: [
+          {
+            desc: 'Gambar elips alas: busur depan tegas, busur belakang putus-putus',
+            draw: (ctx, p, w, h) => {
+              const cx = w / 2, cy = h / 2 + 100, rx = 130, ry = 42;
+              drawEllipseArc(ctx, cx, cy, rx, ry, 0, Math.PI, false, p);
+              drawEllipseArc(ctx, cx, cy, rx, ry, Math.PI, Math.PI * 2, true, p);
+              drawPointLabel(ctx, cx, cy, 'O1', {x: -10, y: 18});
+            }
+          },
+          {
+            desc: 'Tarik dua garis selimut tegak lurus di sisi kiri dan kanan',
+            draw: (ctx, p, w, h) => {
+              SHAPES.tabung.steps[0].draw(ctx, 1, w, h);
+              const cx = w / 2, cy = h / 2 + 100, rx = 130, H = 200;
+              drawLine(ctx, cx - rx, cy, cx - rx, cy - H, false, p);
+              drawLine(ctx, cx + rx, cy, cx + rx, cy - H, false, p);
+            }
+          },
+          {
+            desc: 'Gambar elips tutup penuh (garis tegas utuh)',
+            draw: (ctx, p, w, h) => {
+              SHAPES.tabung.steps[1].draw(ctx, 1, w, h);
+              const cx = w / 2, cy = h / 2 + 100 - 200, rx = 130, ry = 42;
+              drawEllipseArc(ctx, cx, cy, rx, ry, 0, Math.PI * 2, false, p);
+              drawPointLabel(ctx, cx, cy, 'O2', {x: -10, y: -14});
+            }
+          }
+        ]
+      },
+
+      kerucut: {
+        name: 'Kerucut',
+        steps: [
+          {
+            desc: 'Gambar elips alas: busur depan tegas, busur belakang putus-putus',
+            draw: (ctx, p, w, h) => {
+              const cx = w / 2, cy = h / 2 + 100, rx = 120, ry = 38;
+              drawEllipseArc(ctx, cx, cy, rx, ry, 0, Math.PI, false, p);
+              drawEllipseArc(ctx, cx, cy, rx, ry, Math.PI, Math.PI * 2, true, p);
+              drawPointLabel(ctx, cx, cy, 'O', {x: -8, y: 18});
+            }
+          },
+          {
+            desc: 'Tandai titik puncak T sejajar di atas pusat elips O',
+            draw: (ctx, p, w, h) => {
+              SHAPES.kerucut.steps[0].draw(ctx, 1, w, h);
+              const cx = w / 2, cy = h / 2 + 100, H = 210;
+              const T = {x: cx, y: cy - H};
+              drawLine(ctx, cx, cy, T.x, T.y, true, p, 'rgba(148, 163, 184, 0.4)');
+              drawPointLabel(ctx, T.x, T.y, 'T', {x: -6, y: -14});
+            }
+          },
+          {
+            desc: 'Tarik garis pelukis dari T ke tepi kiri dan kanan elips alas',
+            draw: (ctx, p, w, h) => {
+              SHAPES.kerucut.steps[1].draw(ctx, 1, w, h);
+              const cx = w / 2, cy = h / 2 + 100, rx = 120, H = 210;
+              const T = {x: cx, y: cy - H};
+              drawLine(ctx, T.x, T.y, cx - rx, cy, false, p);
+              drawLine(ctx, T.x, T.y, cx + rx, cy, false, p);
+            }
+          }
+        ]
+      },
+
+      bola: {
+        name: 'Bola',
+        steps: [
+          {
+            desc: 'Gambar lingkaran luar utama dengan titik pusat O',
+            draw: (ctx, p, w, h) => {
+              const cx = w / 2, cy = h / 2, r = 140;
+              ctx.save();
+              ctx.beginPath();
+              ctx.strokeStyle = '#38bdf8';
+              ctx.lineWidth = 2.5;
+              ctx.arc(cx, cy, r, 0, Math.PI * 2 * Math.min(p, 1));
+              ctx.stroke();
+              ctx.restore();
+              drawPointLabel(ctx, cx, cy, 'O', {x: -8, y: -10});
+            }
+          },
+          {
+            desc: 'Gambar elips khatulistiwa horizontal (depan tegas, belakang putus-putus)',
+            draw: (ctx, p, w, h) => {
+              SHAPES.bola.steps[0].draw(ctx, 1, w, h);
+              const cx = w / 2, cy = h / 2, r = 140, ry = 42;
+              drawEllipseArc(ctx, cx, cy, r, ry, 0, Math.PI, false, p);
+              drawEllipseArc(ctx, cx, cy, r, ry, Math.PI, Math.PI * 2, true, p);
+            }
+          },
+          {
+            desc: 'Tambahkan elips meridian vertikal untuk memberi efek kedalaman 3D sempurna',
+            draw: (ctx, p, w, h) => {
+              SHAPES.bola.steps[1].draw(ctx, 1, w, h);
+              const cx = w / 2, cy = h / 2, r = 140, rx = 42;
+              ctx.save();
+              ctx.translate(cx, cy);
+              ctx.rotate(Math.PI / 2);
+              drawEllipseArc(ctx, 0, 0, r, rx, 0, Math.PI, false, p);
+              drawEllipseArc(ctx, 0, 0, r, rx, Math.PI, Math.PI * 2, true, p);
+              ctx.restore();
+            }
+          }
+        ]
+      }
+    };
+
+    // Canvas & Control Controllers
+    let vizCanvas, vizCtx, practiceCanvas, practiceCtx;
+    let animFrameId = null;
+    let isDrawingPractice = false;
+    let practicePaths = [];
+
+    function init() {
+      renderShapeSelector();
+      
+      vizCanvas = document.getElementById('vizCanvas');
+      vizCtx = vizCanvas.getContext('2d');
+
+      practiceCanvas = document.getElementById('practiceCanvas');
+      practiceCtx = practiceCanvas.getContext('2d');
+
+      setupPracticeEvents();
+      selectShape('kubus');
+      
+      window.addEventListener('resize', () => {
+        resizeCanvas(vizCanvas);
+        resizeCanvas(practiceCanvas);
+        updateViz();
+      });
+
+      requestAnimationFrame(animLoop);
+    }
+
+    function renderShapeSelector() {
+      const container = document.getElementById('shape-selector');
+      if (container) {
+        container.innerHTML = Object.keys(SHAPES).map(key => `
+          <button class="shape-chip ${key === state.activeShape ? 'is-active' : ''}" onclick="selectShape('${key}')">
+            ${SHAPES[key].name}
+          </button>
+        `).join('');
+      }
+    }
+
+    function selectShape(key) {
+      state.activeShape = key;
+      state.currentStep = 0;
+      state.progress = 0;
+      renderShapeSelector();
+      updateViz();
+    }
+
+    function switchTab(tab) {
+      state.activeTab = tab;
+      document.getElementById('tab-viz').classList.toggle('is-active', tab === 'viz');
+      document.getElementById('tab-practice').classList.toggle('is-active', tab === 'practice');
+      document.getElementById('panel-viz').style.display = tab === 'viz' ? 'flex' : 'none';
+      document.getElementById('panel-practice').style.display = tab === 'practice' ? 'flex' : 'none';
+      
+      if (tab === 'practice') {
+        resizeCanvas(practiceCanvas);
+        renderPractice();
+      } else {
+        resizeCanvas(vizCanvas);
+      }
+    }
+
+    function resizeCanvas(canvas) {
+      if (!canvas) return;
+      const box = canvas.parentElement;
+      const dpr = window.devicePixelRatio || 1;
+      const w = box.clientWidth;
+      const h = box.clientHeight;
+      
+      if (canvas.width !== Math.floor(w * dpr) || canvas.height !== Math.floor(h * dpr)) {
+        canvas.width = Math.floor(w * dpr);
+        canvas.height = Math.floor(h * dpr);
+      }
+      const ctx = canvas.getContext('2d');
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+
+    // Main Animation Loop
+    let lastTime = performance.now();
+    function animLoop(now) {
+      const dt = (now - lastTime) / 1000;
+      lastTime = now;
+
+      if (state.activeTab === 'viz' && state.isPlaying) {
+        state.progress += dt * 1.2 * state.speed;
+        if (state.progress >= 1.0) {
+          state.progress = 1.0;
+        }
+        renderViz();
+      }
+
+      animFrameId = requestAnimationFrame(animLoop);
+    }
+
+    function renderViz() {
+      if (!vizCanvas) return;
+      resizeCanvas(vizCanvas);
+
+      const w = vizCanvas.parentElement.clientWidth;
+      const h = vizCanvas.parentElement.clientHeight;
+      vizCtx.clearRect(0, 0, w, h);
+
+      // Draw Grid Subtle Background
+      vizCtx.save();
+      vizCtx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
+      vizCtx.lineWidth = 1;
+      for (let x = 0; x < w; x += 30) {
+        vizCtx.beginPath(); vizCtx.moveTo(x, 0); vizCtx.lineTo(x, h); vizCtx.stroke();
+      }
+      for (let y = 0; y < h; y += 30) {
+        vizCtx.beginPath(); vizCtx.moveTo(0, y); vizCtx.lineTo(w, y); vizCtx.stroke();
+      }
+      vizCtx.restore();
+
+      const shapeData = SHAPES[state.activeShape];
+      const step = shapeData.steps[state.currentStep];
+
+      document.getElementById('step-badge').textContent = `Langkah ${state.currentStep + 1}/${shapeData.steps.length}`;
+      document.getElementById('step-desc').textContent = step.desc;
+
+      step.draw(vizCtx, state.progress, w, h);
+    }
+
+    function prevStep() {
+      if (state.currentStep > 0) {
+        state.currentStep--;
+        state.progress = 1.0;
+        renderViz();
+      }
+    }
+
+    function nextStep() {
+      const total = SHAPES[state.activeShape].steps.length;
+      if (state.currentStep < total - 1) {
+        state.currentStep++;
+        state.progress = 0.0;
+        renderViz();
+      }
+    }
+
+    function replayStep() {
+      state.progress = 0.0;
+      state.isPlaying = true;
+      document.getElementById('btn-play').textContent = 'Pause';
+      renderViz();
+    }
+
+    function togglePlay() {
+      state.isPlaying = !state.isPlaying;
+      document.getElementById('btn-play').textContent = state.isPlaying ? 'Pause' : 'Play';
+    }
+
+    function changeSpeed(val) {
+      state.speed = parseFloat(val);
+    }
+
+    function toggleDashed(val) {
+      state.showDashed = val;
+      renderViz();
+    }
+
+    // Practice Pad Event Handlers
+    function setupPracticeEvents() {
+      const getPos = e => {
+        const rect = practiceCanvas.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        return {
+          x: clientX - rect.left,
+          y: clientY - rect.top
+        };
+      };
+
+      const start = e => {
+        isDrawingPractice = true;
+        const pos = getPos(e);
+        practicePaths.push([pos]);
+        renderPractice();
+      };
+
+      const move = e => {
+        if (!isDrawingPractice) return;
+        const pos = getPos(e);
+        practicePaths[practicePaths.length - 1].push(pos);
+        renderPractice();
+      };
+
+      const stop = () => {
+        isDrawingPractice = false;
+      };
+
+      practiceCanvas.addEventListener('mousedown', start);
+      practiceCanvas.addEventListener('mousemove', move);
+      window.addEventListener('mouseup', stop);
+
+      practiceCanvas.addEventListener('touchstart', e => { e.preventDefault(); start(e); });
+      practiceCanvas.addEventListener('touchmove', e => { e.preventDefault(); move(e); });
+      window.addEventListener('touchend', stop);
+    }
+
+    function clearPracticeCanvas() {
+      practicePaths = [];
+      renderPractice();
+    }
+
+    function toggleTraceGuide() {
+      state.showGuide = !state.showGuide;
+      renderPractice();
+    }
+
+    function renderPractice() {
+      if (!practiceCanvas) return;
+      resizeCanvas(practiceCanvas);
+
+      const w = practiceCanvas.parentElement.clientWidth;
+      const h = practiceCanvas.parentElement.clientHeight;
+
+      practiceCtx.clearRect(0, 0, w, h);
+
+      // Draw Grid Background
+      practiceCtx.save();
+      practiceCtx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+      practiceCtx.lineWidth = 1;
+      const gridSize = 30;
+      for (let x = 0; x < w; x += gridSize) {
+        practiceCtx.beginPath(); practiceCtx.moveTo(x, 0); practiceCtx.lineTo(x, h); practiceCtx.stroke();
+      }
+      for (let y = 0; y < h; y += gridSize) {
+        practiceCtx.beginPath(); practiceCtx.moveTo(0, y); practiceCtx.lineTo(w, y); practiceCtx.stroke();
+      }
+      practiceCtx.restore();
+
+      // Guide shape background
+      if (state.showGuide) {
+        practiceCtx.save();
+        practiceCtx.globalAlpha = 0.18;
+        const shapeData = SHAPES[state.activeShape];
+        shapeData.steps[shapeData.steps.length - 1].draw(practiceCtx, 1, w, h);
+        practiceCtx.restore();
+      }
+
+      // User drawing strokes
+      practiceCtx.save();
+      practiceCtx.strokeStyle = '#6366f1';
+      practiceCtx.lineWidth = 3;
+      practiceCtx.lineCap = 'round';
+      practiceCtx.lineJoin = 'round';
+
+      practicePaths.forEach(path => {
+        if (path.length < 2) return;
+        practiceCtx.beginPath();
+        practiceCtx.moveTo(path[0].x, path[0].y);
+        for (let i = 1; i < path.length; i++) {
+          practiceCtx.lineTo(path[i].x, path[i].y);
+        }
+        practiceCtx.stroke();
+      });
+      practiceCtx.restore();
+    }
+
+    function updateViz() {
+      renderViz();
+      if (state.activeTab === 'practice') {
+        renderPractice();
+      }
+    }
+
+    window.addEventListener('load', () => {
+      init();
+    });
+  </script>
+</body>
+</html>
